@@ -1,0 +1,64 @@
+/* Total Sales by Model (up to 2022) */
+
+SELECT 
+    P.ModelName,
+    P.Brand,
+    SUM(S.Quantity) AS TotalSold
+FROM 
+    Sales S
+JOIN 
+    Products P ON S.ProductID = P.ProductID
+WHERE 
+    YEAR(S.SaleDate) <= 2022
+GROUP BY 
+    P.ModelName, P.Brand
+ORDER BY 
+    TotalSold DESC;
+
+
+/* Annual Sales Trend for Brand Products */
+SELECT 
+    YEAR(S.SaleDate) AS SaleYear,
+    SUM(S.Quantity) AS TotalSales
+FROM 
+    Sales S
+JOIN 
+    Products P ON S.ProductID = P.ProductID
+WHERE 
+    P.Brand = 'xxx'
+    AND YEAR(S.SaleDate) <= 2022
+GROUP BY 
+    YEAR(S.SaleDate)
+ORDER BY 
+    SaleYear;
+
+/* Top-Selling Model Using Subquery */
+SELECT 
+    ModelName, Brand, TotalSold
+FROM (
+    SELECT 
+        P.ModelName,
+        P.Brand,
+        SUM(S.Quantity) AS TotalSold
+    FROM 
+        Sales S
+    JOIN 
+        Products P ON S.ProductID = P.ProductID
+    WHERE 
+        YEAR(S.SaleDate) <= 2022
+    GROUP BY 
+        P.ModelName, P.Brand
+) AS SalesSummary
+WHERE 
+    TotalSold = (
+        SELECT MAX(TotalSold)
+        FROM (
+            SELECT 
+                SUM(S.Quantity) AS TotalSold
+            FROM Sales S
+            JOIN Products P ON S.ProductID = P.ProductID
+            WHERE YEAR(S.SaleDate) <= 2022
+            GROUP BY P.ModelName, P.Brand
+        ) AS InnerSummary
+    );
+
